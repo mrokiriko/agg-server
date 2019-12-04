@@ -6,7 +6,7 @@ import json
 from .comparators.polyphone.polycompare import *
 
 class Thread(models.Model):
-	title = models.CharField(max_length=300)
+	title = models.TextField()
 	phonograms = models.TextField()
 	date = models.DateTimeField(default=timezone.now)
 
@@ -15,7 +15,7 @@ class Thread(models.Model):
 
 class Article(models.Model):
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-	title = models.CharField(max_length=300)
+	title = models.TextField()
 	text = models.TextField()
 	phonograms = models.TextField(blank=True)
 	date = models.DateTimeField(default=timezone.now)
@@ -24,9 +24,9 @@ class Article(models.Model):
 	def __str__(self):
 		return (self.title + ' \n' +  self.text)
 
-	def create_phonograms(self, round_dict = 1024):
-		self.phonograms = json.dumps(polyconverter(text = str(self), round_dict = round_dict))
-		self.save()
+	@staticmethod
+	def create_phonograms(text, round_dict = 1024):
+		return json.dumps(polyconverter(text = text, round_dict = round_dict))
 
 	def find_thread(self, min_coef = 0.185085, round_dec = 3, round_dict = 1024):
 		isThreadFound = False
@@ -34,7 +34,7 @@ class Article(models.Model):
 		threads = Thread.objects.all()
 
 		if self.phonograms is '' or self.phonograms is None:
-			self.create_phonograms(round_dict = round_dict)
+			self.phonograms = self.create_phonograms(str(self), round_dict = round_dict)
 
 		if threads.exists():
 			phonograms = json.loads(self.phonograms)
