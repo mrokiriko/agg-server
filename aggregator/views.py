@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from .models import Article
 from .serializers import ArticleSerializer
 
+import hashlib
 
 class ArticleView(APIView):
 	permission_classes = (IsAuthenticatedOrReadOnly,)
@@ -22,6 +23,8 @@ class ArticleView(APIView):
 	
 	def post(self, request, pk = None):
 		#Here would be parser
+		title_len = 64 #If title is empty: how many symbols should be got from text to title
+
 		article = request.data.get('article')
 		if type(article) is dict:
 			article.update({'author_id': request.user.pk}) #It's ok with IsAuthenticatedOrReadOnly?
@@ -33,14 +36,29 @@ class ArticleView(APIView):
 		serializer = ArticleSerializer(data = article)
 
 		if serializer.is_valid(raise_exception = True):
-			phonograms = Article.create_phonograms(article['title'] + ' \n' +  article['text'])
-			identical_articles = Article.objects.filter(phonograms = phonograms)
+			article.update({'text': Article.normilize_input(article['text'])})
+			#Len validation and empty title fill
+			if (len(article['text']) < title_len):
+				return Response({"success": "False", "msg": "insufficient text length"})
+			elif not article.get('title', None):
+				article.update({'title': article['text'][:title_len]})
+			#Uniqueness check
+			article.update({'hash': hashlib.sha256(article['text'].encode()).hexdigest()})     
+			identical_articles = Article.objects.filter(hash = article['hash'])
 			if identical_articles.exists():
-				return Response({"success": "True", "data": identical_articles[0].thread.id}) #Return only group?
+				return Response({"success": "True", "data": identical_articles[0].thread.id}) if identical_articles[0].thread else Response({"success": "False", "msg": "thread not found"}) #Return only group?
 			else:
-				article_received = serializer.save()
-				thread_received = article_received.find_thread()
-				return Response({"success": "True", "data": thread_received.id}) #Return only group?
+				serializer = ArticleSerializer(data = article)
+				if serializer.is_valid(raise_exception = True):
+					article_received = serializer.save()
+					thread_received = article_received.find_thread()
+					if not thread_received:
+						serializer.delete()
+						return Response({"success": "False", "msg": "thread not found"}) 
+					else:
+						return Response({"success": "True", "data": thread_received.id}) #Return only group?
+				else:
+					return Response({"success": "False", "msg": "text after normalization is not valid"})
 		else:
 			return Response({"success": "False", "msg": "data is not valid"})
 

@@ -3,7 +3,13 @@ import re
 import collections
 from . import polyphone
 
+def links_cleaner(text):
+	text = re.sub(r"«http:.+?»",'',text)
+
+	return text
+
 def normalization(text):
+	text - links_cleaner(text)
 	text = re.sub(r'[^а-яА-ЯёЁa-zA-Z ]', ' ', text)
 	text = re.sub(r'\b[a-zа-яё0-9]{1,4}\b', ' ', text)
 	text = re.sub(r'\b[а-яё0-9]{1,3}\b', ' ', text)

@@ -4,7 +4,7 @@ import collections
 from . import polyphone
 
 def normalization(text):
-
+	text = re.sub(r'(http)[s]?[^ \n]+',' ',text)
 	text = re.sub(r'[^а-яА-ЯёЁa-zA-Z ]', ' ', text)
 	text = re.sub(r'\b[a-zа-яё0-9]{1,4}\b', ' ', text)
 	text = re.sub(r'\b[а-яё0-9]{1,3}\b', ' ', text)
@@ -15,7 +15,6 @@ def normalization(text):
 	return text	
 
 def polyconverter(text, round_dict = 1024):
-
 	words = normalization(text).split(' ')
 	phonograms = []
 	poly = polyphone.Polyphone()
@@ -30,9 +29,7 @@ def polyconverter(text, round_dict = 1024):
 	return phonograms
 
 def polycompare(dict1, dict2):
-
 	intersection = set(dict1.keys()) & set(dict2.keys())
-
 	intersection_count = 0
 
 	for C in intersection:
@@ -41,7 +38,5 @@ def polycompare(dict1, dict2):
 		intersection_count += B if (A>B) else A
 	common_count = sum(dict1.values()) + sum(dict2.values())
 
-	if common_count:
-		return 2 * intersection_count / common_count
-	else:
-		return 1
+	return (2 * intersection_count / common_count) if common_count else 1
+

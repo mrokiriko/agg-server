@@ -15,11 +15,12 @@ class Thread(models.Model):
 
 class Article(models.Model):
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-	title = models.TextField()
+	title = models.TextField(default='', blank=True)
 	text = models.TextField()
 	phonograms = models.TextField(blank=True)
 	date = models.DateTimeField(default=timezone.now)
 	thread = models.ForeignKey(Thread, on_delete=models.CASCADE, blank=True, null=True)
+	hash = models.CharField(max_length=256, null=True)
 
 	def __str__(self):
 		return (self.title + ' \n' +  self.text)
@@ -27,6 +28,10 @@ class Article(models.Model):
 	@staticmethod
 	def create_phonograms(text, round_dict = 1024):
 		return json.dumps(polyconverter(text = text, round_dict = round_dict))
+
+	@staticmethod
+	def normilize_input(text):
+		return normalization(text = text)
 
 	def find_thread(self, min_coef = 0.185085, round_dec = 3, round_dict = 1024):
 		isThreadFound = False
