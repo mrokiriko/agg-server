@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 
 from .models import Article
@@ -9,7 +9,7 @@ from .serializers import ArticleSerializer
 import hashlib
 
 class ArticleView(APIView):
-	permission_classes = (IsAuthenticatedOrReadOnly,)
+	permission_classes = (IsAuthenticated,)
 
 	def get(self, request, pk = None):
 		if not pk:
@@ -22,8 +22,9 @@ class ArticleView(APIView):
 			return Response({"article": serializer.data})
 	
 	def post(self, request, pk = None):
-		#Here would be parser
-		title_len = 64 #If title is empty: how many symbols should be got from text to title
+		#Here would be parser (possibly)
+		title_len = 8 #If title is empty: how many words should be got from text to title
+		min_text_len = 64 #Minimal amount symbols in text
 
 		article = request.data.get('article')
 		if type(article) is dict:
@@ -36,14 +37,14 @@ class ArticleView(APIView):
 		serializer = ArticleSerializer(data = article)
 
 		if serializer.is_valid(raise_exception = True):
-			article.update({'text': Article.normilize_input(article['text'])})
+			article.update({'text': Article.normilize_input(article['text'], onlylinks = True, getlist = False)})
 			#Len validation and empty title fill
-			if (len(article['text']) < title_len):
+			if (len(article['text']) < min_text_len):
 				return Response({"success": "False", "msg": "insufficient text length"})
 			elif not article.get('title', None):
-				article.update({'title': article['text'][:title_len]})
+				article.update({'title': ' '.join(article['text'].split()[:title_len])}) #get title
 			#Uniqueness check
-			article.update({'hash': hashlib.sha256(article['text'].encode()).hexdigest()})     
+			article.update({'hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
 			identical_articles = Article.objects.filter(hash = article['hash'])
 			if identical_articles.exists():
 				return Response({"success": "True", "data": identical_articles[0].thread.id}) if identical_articles[0].thread else Response({"success": "False", "msg": "thread not found"}) #Return only group?
@@ -53,7 +54,7 @@ class ArticleView(APIView):
 					article_received = serializer.save()
 					thread_received = article_received.find_thread()
 					if not thread_received:
-						serializer.delete()
+						Article.objects.get(id = article_received.id).delete()
 						return Response({"success": "False", "msg": "thread not found"}) 
 					else:
 						return Response({"success": "True", "data": thread_received.id}) #Return only group?
@@ -66,7 +67,7 @@ class ArticleView(APIView):
 		if not pk:
 			return Response({"success": "False", "msg": "primary key is not found"})
 		else:
-			article = get_object_or_404(Article.objects.all(), pk = pk)
+			article = get_object_or_404(Article.objects.all(), pk = pk) #Maybe raise not all objects?
 			data = request.data.get('article')
 			serializer = ArticleSerializer(instance = article, data = data, partial = True)
 			if serializer.is_valid(raise_exception = True):

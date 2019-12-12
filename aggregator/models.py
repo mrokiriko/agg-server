@@ -30,8 +30,8 @@ class Article(models.Model):
 		return json.dumps(polyconverter(text = text, round_dict = round_dict))
 
 	@staticmethod
-	def normilize_input(text):
-		return normalization(text = text)
+	def normilize_input(text, onlylinks = False, getlist = True):
+		return normalization(text = text, onlylinks = onlylinks, getlist = getlist)
 
 	def find_thread(self, min_coef = 0.185085, round_dec = 3, round_dict = 1024):
 		isThreadFound = False
