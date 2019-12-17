@@ -44,5 +44,5 @@ def polycompare(dict1, dict2):
 		intersection_count += B if (A>B) else A
 	common_count = sum(dict1.values()) + sum(dict2.values())
 
-	return (2 * intersection_count / common_count) if common_count else 1
+	return (2 * intersection_count / common_count) if common_count else 0
 
