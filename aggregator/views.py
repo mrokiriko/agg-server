@@ -18,7 +18,7 @@ class ArticleView(APIView):
 			return Response({"articles": serializer.data})
 		else:
 			article = get_object_or_404(Article.objects.all(), pk=pk)
-			serializer = ArticleSerializer(article, many=False)
+			serializer = ArticleSerializer(article, many = False)
 			return Response({"article": serializer.data})
 	
 	def post(self, request, pk = None):
@@ -26,42 +26,84 @@ class ArticleView(APIView):
 		title_len = 8 #If title is empty: how many words should be got from text to title
 		min_text_len = 64 #Minimal amount symbols in text
 
-		article = request.data.get('article')
-		if type(article) is dict:
-			article.update({'author_id': request.user.pk}) #It's ok with IsAuthenticatedOrReadOnly?
-			if pk is not None:
-				article.update({'id': pk})
-		else:
-			return Response({"success": "False", "msg": "data type is not dict"})
+		status_key = "success"
+		message_key = "msg"
 
-		serializer = ArticleSerializer(data = article)
+		#article = request.data.get('article')
 
-		if serializer.is_valid(raise_exception = True):
-			article.update({'text': Article.normilize_input(article['text'], onlylinks = True, getlist = False)})
-			#Len validation and empty title fill
-			if (len(article['text']) < min_text_len):
-				return Response({"success": "False", "msg": "insufficient text length"})
-			elif not article.get('title', None):
-				article.update({'title': ' '.join(article['text'].split()[:title_len])}) #get title
-			#Uniqueness check
-			article.update({'hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
-			identical_articles = Article.objects.filter(hash = article['hash'])
-			if identical_articles.exists():
-				return Response({"success": "True", "data": identical_articles[0].thread.id}) if identical_articles[0].thread else Response({"success": "False", "msg": "thread not found"}) #Return only group?
-			else:
-				serializer = ArticleSerializer(data = article)
-				if serializer.is_valid(raise_exception = True):
-					article_received = serializer.save()
-					thread_received = article_received.find_thread()
-					if not thread_received:
-						Article.objects.get(id = article_received.id).delete()
-						return Response({"success": "False", "msg": "thread not found"}) 
-					else:
-						return Response({"success": "True", "data": thread_received.id}) #Return only group?
+		articles = request.data.get('articles')
+		responses = []
+		main_response = []
+
+		if type(articles) is list:
+
+			for article in articles:
+
+				if type(article) is dict:
+					article.update({'author_id': request.user.pk}) #It's ok with IsAuthenticatedOrReadOnly?
+					if pk is not None:
+						article.update({'id': pk})
+
 				else:
-					return Response({"success": "False", "msg": "text after normalization is not valid"})
+					responses.append(("False", "Data type is not dict"))
+					continue
+
+				serializer = ArticleSerializer(data = article)
+
+				if serializer.is_valid(raise_exception = True):
+
+					article.update({'text': Article.normilize_input(article['text'], onlylinks = True, getlist = False)})
+
+					#Len validation and empty title fill
+					if (len(article['text']) < min_text_len):
+						responses.append(("False", "Insufficient text length"))
+						continue
+
+					elif not article.get('title', None):
+						article.update({'title': ' '.join(article['text'].split()[:title_len])}) #get title from text
+
+					#Uniqueness check:
+
+					article.update({'ph_hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
+					identical_articles = Article.objects.filter(ph_hash = article['ph_hash'])
+
+					if identical_articles.exists():
+
+						if identical_articles[0].thread:
+							responses.append(("True", identical_articles[0].thread.id))
+
+						else:
+							responses.append(("False", "Thread not found")) #return group only
+
+					else:
+
+						serializer = ArticleSerializer(data = article)
+
+						if serializer.is_valid(): #raise_exception = False
+
+							article_received = serializer.save()
+							thread_received = article_received.find_thread()
+
+							if not thread_received:
+								Article.objects.get(id = article_received.id).delete() #!!!
+								responses.append(("False", "Thread not found"))
+
+							else:
+								responses.append(("True", thread_received.id)) #Return only group
+
+						else:
+							responses.append(("False", "Text after normalization is not valid"))
+				else:
+					responses.append(("False", "Data is not valid")) 
+
 		else:
-			return Response({"success": "False", "msg": "data is not valid"})
+			responses.append(("False", "Data type is not list"))
+
+		for response_status, response_message in responses:
+			main_response.append({status_key : response_status, message_key : response_message})
+
+		return Response(main_response)
+
 
 	def put(self, request, pk = None):
 		if not pk:

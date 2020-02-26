@@ -9,7 +9,8 @@ class ArticleSerializer(serializers.Serializer):
 	text = serializers.CharField()
 	phonograms = serializers.CharField(required = False)
 	thread_id = serializers.IntegerField(required = False)
-	hash = serializers.CharField(max_length=256, required = False)
+	ph_hash = serializers.CharField(max_length=256, required = False)
+	source = serializers.IntegerField(required = False)
 
 	def create(self, validated_data):
 		return Article.objects.create(**validated_data)
@@ -21,8 +22,9 @@ class ArticleSerializer(serializers.Serializer):
 		instance.text = validated_data.get('text', instance.text)
 		instance.phonograms = validated_data.get('phonograms', instance.phonograms)
 		instance.thread_id = validated_data.get('thread_id', instance.thread_id)
-		#instance.date = validated_data.get('date ', instance.date)
-		instance.hash = validated_data.get('phonograms_hash', instance.hash)
+		#instance.date = validated_data.get('date', instance.date)
+		instance.ph_hash = validated_data.get('ph_hash', instance.ph_hash)
+		instance.source = validated_data.get('source', instance.source)
 
 		instance.save()
 		return instance

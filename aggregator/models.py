@@ -20,7 +20,8 @@ class Article(models.Model):
 	phonograms = models.TextField(blank=True)
 	date = models.DateTimeField(default=timezone.now)
 	thread = models.ForeignKey(Thread, on_delete=models.CASCADE, blank=True, null=True)
-	hash = models.CharField(max_length=256, null=True)
+	ph_hash = models.CharField(max_length=256, null=True)
+	source = models.IntegerField(default=None, null=True)
 
 	def __str__(self):
 		return (self.title + ' \n' +  self.text)
