@@ -17,9 +17,12 @@ class ArticleView(APIView):
 
 	def get(self, request, pk = None):
 		if not pk:
-			articles = Article.objects.all()
+			'''
+			articles = Article.objects.order_by("-date")[:1000]
 			serializer = ArticleSerializer(articles, many = True)
 			return Response({"articles": serializer.data})
+			'''
+			return Response({"articles": Article.objects.count()})
 		else:
 			article = get_object_or_404(Article.objects.all(), pk=pk)
 			serializer = ArticleSerializer(article, many = False)
