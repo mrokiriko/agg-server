@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-#from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from .permissions import AllowReadAndAdd
 
 from django.shortcuts import get_object_or_404
 
@@ -13,7 +13,7 @@ import hashlib
 
 class ArticleView(APIView):
 
-	permission_classes = [ AllowAny ]
+	permission_classes = [ IsAuthenticated | AllowReadAndAdd ]
 
 	def get(self, request, pk = None):
 		if not pk:
@@ -35,8 +35,6 @@ class ArticleView(APIView):
 		default_user = 3
 		status_key = "success"
 		message_key = "msg"
-
-		#article = request.data.get('article')
 
 		articles = request.data.get('articles')
 		responses = []
