@@ -4,8 +4,5 @@ class AllowReadAndAdd(BasePermission):
 	anon_safe_methods = ['GET', 'POST']
 
 	def has_permission(self, request, view):
-		if request.method in self.anon_safe_methods:
-			return True
-		else:
-			return False
+		return True if request.method in self.anon_safe_methods else False
 
