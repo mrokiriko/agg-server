@@ -7,4 +7,4 @@ db.sqlite3
 .DS_Store
 aggregator/migrations
 secret_key.txt
-gposerver/settings.py
+settings.py
