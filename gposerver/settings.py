@@ -26,7 +26,7 @@ with open('secret_key.txt') as f:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.pythonanywhere.com', '51.15.196.2']
+ALLOWED_HOSTS = ['51.15.196.2', '127.0.0.1']
 
 
 # Application definition

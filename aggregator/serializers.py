@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from .models import Article
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 class ArticleSerializer(serializers.Serializer):
+
 	id = serializers.IntegerField(required = False)
 	author_id = serializers.IntegerField()
 	title = serializers.CharField(required = False)
@@ -11,6 +14,8 @@ class ArticleSerializer(serializers.Serializer):
 	thread_id = serializers.IntegerField(required = False)
 	ph_hash = serializers.CharField(max_length=256, required = False)
 	source = serializers.IntegerField(required = False)
+
+	@method_decorator(cache_page(60))
 
 	def create(self, validated_data):
 		return Article.objects.create(**validated_data)
