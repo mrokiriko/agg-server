@@ -4,8 +4,6 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .permissions import AllowReadAndAdd
 
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django.shortcuts import get_object_or_404
 from .models import Article
 from .serializers import ArticleSerializer
@@ -16,8 +14,6 @@ class ArticleView(APIView):
 
 	
 	permission_classes = [ IsAuthenticated | AllowReadAndAdd ]
-	
-	@method_decorator(cache_page(60))
 	
 	def get(self, request, pk = None):
 		if not pk:
