@@ -32,7 +32,7 @@ class ArticleView(APIView):
 		#Here would be parser (possibly)
 		title_len = 8 #If title is empty: how many words should be got from text to title
 		min_text_len = 64 #Minimal amount symbols in text
-		default_user = 0
+		default_user = 3
 		status_key = "success"
 		message_key = "msg"
 
