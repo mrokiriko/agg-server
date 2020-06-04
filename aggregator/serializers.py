@@ -12,6 +12,7 @@ class ArticleSerializer(serializers.Serializer):
 	thread_id = serializers.IntegerField(required = False)
 	ph_hash = serializers.CharField(max_length=256, required = False)
 	source = serializers.IntegerField(required = False)
+	image = serializers.CharField(required = False)
 
 	def create(self, validated_data):
 		return Article.objects.create(**validated_data)
@@ -26,6 +27,7 @@ class ArticleSerializer(serializers.Serializer):
 		#instance.date = validated_data.get('date', instance.date)
 		instance.ph_hash = validated_data.get('ph_hash', instance.ph_hash)
 		instance.source = validated_data.get('source', instance.source)
+		instance.image = validated_data.get('image', instance.image)
 
 		instance.save()
 		return instance

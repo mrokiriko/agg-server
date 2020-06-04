@@ -4,6 +4,7 @@ from django.utils import timezone
 
 import json
 from .comparators.polyphone.polycompare import *
+from .downloaders.download_image import download_image
 
 class Thread(models.Model):
 	title = models.TextField()
@@ -22,6 +23,7 @@ class Article(models.Model):
 	thread = models.ForeignKey(Thread, on_delete=models.CASCADE, blank=True, null=True)
 	ph_hash = models.CharField(max_length=256, null=True)
 	source = models.IntegerField(default=None, null=True)
+	image = models.TextField(blank=True)
 
 	def __str__(self):
 		return (self.title + ' \n' +  self.text)
@@ -64,4 +66,37 @@ class Article(models.Model):
 
 		return self.thread
 
+	def download_image(self, path = 'images'):
+		try:
+			if type(self.image) is not str:
+				raise Exception('link not found or unexpected type')
 
+			image_info = download_image(self.image, path)
+
+			if (type(image_info['filename']) is not str):
+				raise Exception('unexpected error while downloading')
+
+			data = Data.objects.create(filename = image_info['filename'], extension = image_info['extension'], f_hash = image_info['f_hash'])
+			a_d = ArticleData.objects.create(article = self, data = data)
+
+		except Exception as e:
+			print("image download error: {error}".format(error = e))
+			return False
+
+		else:
+			return True
+
+class Data(models.Model):
+	filename = models.TextField()
+	extension = models.CharField(max_length=256, null=True)
+	f_hash = models.CharField(max_length=256, null=True)
+
+	def __str__(self):
+		return (self.filename)
+
+class ArticleData(models.Model):
+	article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
+	data = models.ForeignKey(Data, on_delete=models.CASCADE, blank=True, null=True)
+
+	def __str__(self):
+		return (str(self.article) + ' ~ ' +  str(self.data))

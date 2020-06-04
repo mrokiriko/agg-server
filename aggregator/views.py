@@ -32,7 +32,7 @@ class ArticleView(APIView):
 		#Here would be parser (possibly)
 		title_len = 8 #If title is empty: how many words should be got from text to title
 		min_text_len = 64 #Minimal amount symbols in text
-		default_user = 3
+		default_user = 0
 		status_key = "success"
 		message_key = "msg"
 
@@ -74,6 +74,7 @@ class ArticleView(APIView):
 
 					article.update({'ph_hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
 					identical_articles = Article.objects.filter(ph_hash = article['ph_hash'])
+					identical_images = Article.objects.filter(ph_hash = article['ph_hash'])
 
 					if identical_articles.exists():
 
@@ -84,13 +85,16 @@ class ArticleView(APIView):
 							responses.append((False, "Thread not found")) #return group only
 
 					else:
-
 						serializer = ArticleSerializer(data = article)
 
 						if serializer.is_valid(): #raise_exception = False
 
 							article_received = serializer.save()
+
 							thread_received = article_received.find_thread()
+
+							if (article_received.image != ''):
+								image_received  = article_received.download_image()
 
 							if not thread_received:
 								Article.objects.get(id = article_received.id).delete() #!!!
