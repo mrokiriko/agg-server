@@ -74,7 +74,7 @@ class ArticleView(APIView):
 
 					article.update({'ph_hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
 					identical_articles = Article.objects.filter(ph_hash = article['ph_hash'])
-					identical_images = Article.objects.filter(ph_hash = article['ph_hash'])
+					#identical_images = <?>.objects.filter(<?>)
 
 					if identical_articles.exists():
 
