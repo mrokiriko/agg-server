@@ -5,7 +5,6 @@ gpovenv
 db.sqlite3
 /static
 .DS_Store
-aggregator/migrations
 secret_key.txt
 settings.py
 images
