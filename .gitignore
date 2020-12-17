@@ -8,3 +8,5 @@ db.sqlite3
 secret_key.txt
 settings.py
 images
+notes.txt
+.idea
