@@ -6,7 +6,6 @@ db.sqlite3
 /static
 .DS_Store
 secret_key.txt
-settings.py
 images
 notes.txt
 .idea
