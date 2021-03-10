@@ -10,12 +10,12 @@ from .serializers import ArticleSerializer
 
 import hashlib
 
+
 class ArticleView(APIView):
 
+	permission_classes = [IsAuthenticated | AllowReadAndAdd]
 	
-	permission_classes = [ IsAuthenticated | AllowReadAndAdd ]
-	
-	def get(self, request, pk = None):
+	def get(self, request, pk=None):
 		if not pk:
 			'''
 			articles = Article.objects.order_by("-date")[:1000]
@@ -28,7 +28,7 @@ class ArticleView(APIView):
 			serializer = ArticleSerializer(article, many = False)
 			return Response({"article": serializer.data})
 	
-	def post(self, request, pk = None):
+	def post(self, request, pk=None):
 		#Here would be parser (possibly)
 		title_len = 8 #If title is empty: how many words should be got from text to title
 		min_text_len = 64 #Minimal amount symbols in text
@@ -60,10 +60,10 @@ class ArticleView(APIView):
 
 				if serializer.is_valid(raise_exception = True):
 
-					article.update({'text': Article.normilize_input(article['text'], onlylinks = True, getlist = False)})
+					article.update({'text': Article.normilize_input(article['text'], onlylinks=True, getlist=False)})
 
 					#Len validation and empty title fill
-					if (len(article['text']) < min_text_len):
+					if len(article['text']) < min_text_len:
 						responses.append((False, "Insufficient text length"))
 						continue
 
@@ -93,8 +93,8 @@ class ArticleView(APIView):
 
 							thread_received = article_received.find_thread()
 
-							if (article_received.image != ''):
-								image_received  = article_received.download_image()
+							# if (article_received.image != ''):
+							# 	image_received  = article_received.download_image()
 
 							if not thread_received:
 								Article.objects.get(id = article_received.id).delete() #!!!
@@ -112,26 +112,24 @@ class ArticleView(APIView):
 			responses.append((False, "Data type is not list"))
 
 		for response_status, response_message in responses:
-
 			main_response.append({status_key : response_status, message_key : response_message})
 
 		return Response(main_response)
 
-
-	def put(self, request, pk = None):
+	def put(self, request, pk=None):
 		if not pk:
 			return Response({"success": False, "msg": "primary key is not found"})
 		else:
-			article = get_object_or_404(Article.objects.all(), pk = pk) #Maybe raise not all objects?
+			article = get_object_or_404(Article.objects.all(), pk=pk) #Maybe raise not all objects?
 			data = request.data.get('article')
-			serializer = ArticleSerializer(instance = article, data = data, partial = True)
-			if serializer.is_valid(raise_exception = True):
+			serializer = ArticleSerializer(instance=article, data=data, partial=True)
+			if serializer.is_valid(raise_exception=True):
 				article_received = serializer.save()
 				return Response({"success": True, "data": article_received.id}) #What to return?
 			else:
 				return Response({"success": False, "msg": "data is not valid"})
 
-	def delete(self, request, pk = None):
+	def delete(self, request, pk=None):
 		if not pk:
 			return Response({"success": False, "msg": "primary key is not found"})
 		else:

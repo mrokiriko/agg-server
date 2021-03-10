@@ -6,6 +6,7 @@ import json
 from .comparators.polyphone.polycompare import *
 from .downloaders.download_image import download_image
 
+
 class Thread(models.Model):
 	title = models.TextField()
 	phonograms = models.TextField()
@@ -13,6 +14,7 @@ class Thread(models.Model):
 
 	def __str__(self):
 		return self.title
+
 
 class Article(models.Model):
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -41,7 +43,7 @@ class Article(models.Model):
 		round_order = 10 ** (round_dec)
 		threads = Thread.objects.all()
 
-		if self.phonograms is '' or self.phonograms is None:
+		if self.phonograms == '' or self.phonograms is None:
 			self.phonograms = self.create_phonograms(str(self), round_dict = round_dict)
 
 		if threads.exists():
@@ -86,6 +88,7 @@ class Article(models.Model):
 		else:
 			return True
 
+
 class Data(models.Model):
 	filename = models.TextField()
 	extension = models.CharField(max_length=256, null=True)
@@ -93,6 +96,7 @@ class Data(models.Model):
 
 	def __str__(self):
 		return (self.filename)
+
 
 class ArticleData(models.Model):
 	article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
