@@ -85,7 +85,7 @@ class ArticleView(APIView):
 							responses.append((False, "Thread not found")) #return group only
 
 					else:
-						serializer = ArticleSerializer(data = article)
+						serializer = ArticleSerializer(data=article)
 
 						if serializer.is_valid(): #raise_exception = False
 
@@ -106,7 +106,7 @@ class ArticleView(APIView):
 						else:
 							responses.append((False, "Text after normalization is not valid"))
 				else:
-					responses.append((False, "Data is not valid")) 
+					responses.append((False, "Data is not valid"))
 
 		else:
 			responses.append((False, "Data type is not list"))
