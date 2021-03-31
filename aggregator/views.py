@@ -25,14 +25,14 @@ class ArticleView(APIView):
 			return Response({"articles": Article.objects.count()})
 		else:
 			article = get_object_or_404(Article.objects.all(), pk=pk)
-			serializer = ArticleSerializer(article, many = False)
+			serializer = ArticleSerializer(article, many=False)
 			return Response({"article": serializer.data})
 	
 	def post(self, request, pk=None):
 		#Here would be parser (possibly)
 		title_len = 8 #If title is empty: how many words should be got from text to title
 		min_text_len = 64 #Minimal amount symbols in text
-		default_user = 3
+		default_user = 2
 		status_key = "success"
 		message_key = "msg"
 
@@ -56,9 +56,9 @@ class ArticleView(APIView):
 					responses.append((False, "Data type is not dict"))
 					continue
 
-				serializer = ArticleSerializer(data = article)
+				serializer = ArticleSerializer(data=article)
 
-				if serializer.is_valid(raise_exception = True):
+				if serializer.is_valid(raise_exception=True):
 
 					article.update({'text': Article.normilize_input(article['text'], onlylinks=True, getlist=False)})
 
@@ -73,7 +73,7 @@ class ArticleView(APIView):
 					#Uniqueness check:
 
 					article.update({'ph_hash': hashlib.sha256(article['text'].encode()).hexdigest()}) #get hash
-					identical_articles = Article.objects.filter(ph_hash = article['ph_hash'])
+					identical_articles = Article.objects.filter(ph_hash=article['ph_hash'])
 					#identical_images = <?>.objects.filter(<?>)
 
 					if identical_articles.exists():
@@ -97,7 +97,7 @@ class ArticleView(APIView):
 							# 	image_received  = article_received.download_image()
 
 							if not thread_received:
-								Article.objects.get(id = article_received.id).delete() #!!!
+								Article.objects.get(id=article_received.id).delete() #!!!
 								responses.append((False, "Thread not found"))
 
 							else:
@@ -112,7 +112,7 @@ class ArticleView(APIView):
 			responses.append((False, "Data type is not list"))
 
 		for response_status, response_message in responses:
-			main_response.append({status_key : response_status, message_key : response_message})
+			main_response.append({status_key: response_status, message_key: response_message})
 
 		return Response(main_response)
 
